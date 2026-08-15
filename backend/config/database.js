@@ -3,7 +3,7 @@ const mysql = require('mysql2');
 const pool = mysql.createPool({
     host: 'localhost',
     user: 'root',
-    password: 'root123',        
+    password: 'your_password_here',        
     database: 'skillswapy',
     waitForConnections: true,
     connectionLimit: 10,

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Profile | SkillSwapy</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/navbar.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+
+        .dashboard-layout {
+            display: flex;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar {
+            width: 260px;
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .sidebar.closed {
+            width: 0;
+            padding: 20px 0;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .sidebar .logo {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #38bdf8;
+            margin-bottom: 30px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 10px;
+        }
+
+        .sidebar-menu a {
+            color: #94a3b8;
+            text-decoration: none;
+            display: block;
+            padding: 10px 15px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-menu a:hover,
+        .sidebar-menu a.active {
+            background-color: #1e293b;
+            color: #ffffff;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .toggle-btn {
+            background: #0f172a;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .welcome-banner {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            max-width: 600px;
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: #0f172a;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 10px;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #475569;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: #475569;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        .save-btn {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-layout">
+        <aside class="sidebar" id="sidebar">
+            <div>
+                <div class="logo">SkillSwapy</div>
+                <ul class="sidebar-menu">
+                    <li><a href="/home">Home</a></li>
+                    <li><a href="/dashboard">Dashboard</a></li>
+                    <li><a href="/matches">Skill Matching</a></li>
+                    <li><a href="/requests">Requests</a></li>
+                    <li><a href="/profile" class="active">Profile</a></li>
+                </ul>
+            </div>
+            <div>
+                <a href="#" onclick="logout()"
+                    style="color: #ef4444; text-decoration: none; padding: 10px 15px; display: block;">Log Out</a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <button class="toggle-btn" onclick="toggleSidebar()">☰ Menu</button>
+            <div class="welcome-banner">
+                <h1 style="margin: 0 0 10px 0; font-size: 1.8rem;">My Profile</h1>
+                <p style="margin: 0; color: #94a3b8;">Manage your account details and profile information.</p>
+            </div>
+
+            <div class="card">
+                <h3>Profile Information</h3>
+                <div class="profile-avatar" id="avatarInitial">U</div>
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="profileName" placeholder="Your Name">
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="profileEmail" placeholder="your.email@example.com" disabled>
+                </div>
+                <button class="save-btn" onclick="saveProfile()">Save Changes</button>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const userId = localStorage.getItem('userId');
+        if (!userId) {
+            window.location.href = '/login';
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('closed');
+        }
+
+        // Fetch real user info from the backend database on load
+        async function loadProfileData() {
+            try {
+                const response = await fetch(`/api/users/profile/${userId}`);
+                if (response.ok) {
+                    const user = await response.json();
+
+                    // Populate fields with database values
+                    document.getElementById('profileName').value = user.name || '';
+                    document.getElementById('profileEmail').value = user.email || '';
+
+                    // Set avatar initial letter from real name
+                    if (user.name) {
+                        document.getElementById('avatarInitial').innerText = user.name.charAt(0).toUpperCase();
+                    }
+                } else {
+                    console.error('Failed to load user profile data');
+                }
+            } catch (err) {
+                console.error('Error connecting to server:', err);
+            }
+        }
+
+        async function saveProfile() {
+            const newName = document.getElementById('profileName').value;
+            if (!newName.trim()) {
+                alert('Name cannot be empty');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/users/profile/${userId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: newName })
+                });
+
+                if (response.ok) {
+                    localStorage.setItem('userName', newName);
+                    document.getElementById('avatarInitial').innerText = newName.charAt(0).toUpperCase();
+                    alert('Profile updated successfully!');
+                } else {
+                    alert('Failed to update profile');
+                }
+            } catch (err) {
+                console.error('Error updating profile:', err);
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/login';
+        }
+
+        // Load data when page opens
+        loadProfileData();
+    </script>
+</body>
+
+</html>

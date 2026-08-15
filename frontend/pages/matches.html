@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Skill Matching | SkillSwapy</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/navbar.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+
+        .dashboard-layout {
+            display: flex;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar {
+            width: 260px;
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .sidebar.closed {
+            width: 0;
+            padding: 20px 0;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .sidebar .logo {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #38bdf8;
+            margin-bottom: 30px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 10px;
+        }
+
+        .sidebar-menu a {
+            color: #94a3b8;
+            text-decoration: none;
+            display: block;
+            padding: 10px 15px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-menu a:hover,
+        .sidebar-menu a.active {
+            background-color: #1e293b;
+            color: #ffffff;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .toggle-btn {
+            background: #0f172a;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .header-brand {
+            opacity: 0;
+            display: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .dashboard-layout.sidebar-closed .header-brand {
+            opacity: 1;
+            display: inline-block;
+        }
+
+        .welcome-banner {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .card h3 {
+            margin-top: 0;
+            font-size: 1.1rem;
+            color: #0f172a;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-layout" id="dashboardLayout">
+        <aside class="sidebar" id="sidebar">
+            <div>
+                <div class="logo">SkillSwapy</div>
+                <ul class="sidebar-menu">
+                    <li><a href="/home">Home</a></li>
+                    <li><a href="/dashboard">Dashboard</a></li>
+                    <li><a href="/matches" class="active">Skill Matching</a></li>
+                    <li><a href="/requests">Requests</a></li>
+                    <li><a href="/profile">Profile</a></li>
+                </ul>
+            </div>
+            <div>
+                <a href="#" onclick="logout()" style="color: #ef4444; text-decoration: none; padding: 10px 15px; display: block;">Log Out</a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px;">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button class="toggle-btn" onclick="toggleSidebar()">☰ </button>
+                    <h2 class="header-brand" style="margin: 0; font-size: 1.25rem; color: #0f172a; font-weight: 700;">SkillSwapy</h2>
+                </div>
+                <a href="/profile" style="display: flex; align-items: center; gap: 10px; text-decoration: none; cursor: pointer;">
+                    <span id="topUserName" style="font-weight: 600; color: #334155; font-size: 0.95rem;"></span>
+                    <div id="topUserAvatar" style="width: 38px; height: 38px; border-radius: 50%; background: #4f46e5; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">U</div>
+                </a>
+            </div>
+
+            <div class="welcome-banner">
+                <h1 style="margin: 0 0 10px 0; font-size: 1.8rem;">Your Skill Matches</h1>
+                <p style="margin: 0; color: #94a3b8;">People who teach what you want to learn!</p>
+            </div>
+
+            <div class="card">
+                <h3>Recommended Peers</h3>
+                <div id="matchesList" style="margin-top: 15px;">
+                    <p style="color: #64748b; font-size: 0.9rem;">Loading matches...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const userId = localStorage.getItem('userId');
+        if (!userId) { window.location.href = '/login'; }
+
+        async function initPage() {
+            try {
+                const profileRes = await fetch(`/api/users/profile/${userId}`);
+                if (profileRes.ok) {
+                    const user = await profileRes.json();
+                    const name = user.name || 'User';
+                    document.getElementById('topUserName').innerText = name;
+                    document.getElementById('topUserAvatar').innerText = name.charAt(0).toUpperCase();
+                }
+            } catch (err) { console.error('Error loading profile:', err); }
+
+            loadMatches();
+        }
+
+        async function loadMatches() {
+            try {
+                const response = await fetch(`/api/matches/${userId}`);
+                if (response.ok) {
+                    const matches = await response.json();
+                    const matchesList = document.getElementById('matchesList');
+                    matchesList.innerHTML = '';
+
+                    if (matches.length === 0) {
+                        matchesList.innerHTML = '<p style="color: #64748b; font-size: 0.9rem;">No matching peers found yet. Try adding more skills to your "Learn" list!</p>';
+                        return;
+                    }
+
+                    matches.forEach(match => {
+                        const matchHTML = `
+                            <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px 16px; border-radius: 8px; margin-bottom: 10px;">
+                                <span style="font-size: 0.95rem; color: #1e293b;">
+                                    <strong style="color: #0f172a;">${match.peer_name}</strong> teaches <span style="color: #4f46e5; font-weight: 600;">${match.skill_name}</span>
+                                </span>
+                                <button onclick="sendConnectRequest(${match.peer_id}, '${match.skill_name}')" style="background: #4f46e5; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">Connect</button>
+                            </div>
+                        `;
+                        matchesList.innerHTML += matchHTML;
+                    });
+                }
+            } catch (err) {
+                console.error('Error loading matches:', err);
+            }
+        }
+
+        async function sendConnectRequest(peerId, skillName) {
+            try {
+                const response = await fetch('/api/requests', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ senderId: userId, receiverId: peerId, skillName: skillName })
+                });
+
+                if (response.ok) {
+                    alert('Connection request sent successfully!');
+                } else {
+                    const errData = await response.json();
+                    alert('Failed to send request: ' + (errData.error || 'Request already exists.'));
+                }
+            } catch (err) {
+                console.error('Error sending request:', err);
+            }
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('closed');
+            document.getElementById('dashboardLayout').classList.toggle('sidebar-closed');
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/login';
+        }
+
+        initPage();
+    </script>
+</body>
+
+</html>

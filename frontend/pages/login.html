@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/navbar.css">
+    <link rel="stylesheet" href="../css/forms.css">
+    <title>Login | SkillSwapy</title>
+</head>
+
+<body>
+    <nav>
+        <div class="logo">SkillSwapy</div>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/login">Login</a></li>
+            <li><a href="/register">Register</a></li>
+        </ul>
+    </nav>
+    <div class="form-container">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <input type="email" id="email" placeholder="Email" required>
+            </div>
+            <div class="form-group">
+                <input type="password" id="password" placeholder="Password" required>
+            </div>
+            <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                <input type="checkbox" id="showPwd" onclick="togglePassword()"
+                    style="width: 20px; height: 20px; margin: 0;">
+                <label for="showPwd" style="margin: 0; cursor: pointer; display: inline; width: auto;">Show
+                    Password</label>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+
+    <script src="../js/auth.js"></script>
+</body>
+
+</html>
